@@ -1,0 +1,17 @@
+{
+  "name": "vue-cli-plugin-dynapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:wip-opensource/webcomponents-cli-dynapp.git",
+  "author": "Daniel Björkander <danielb@wip.se>",
+  "license": "MIT",
+  "dependencies": {
+    "@vue/cli-shared-utils": "^3.1.1",
+    "axios": "^0.18.0",
+    "fs-extra": "^7.0.1",
+    "mime-types": "^2.1.21",
+    "path": "^0.12.7",
+    "url-join": "^4.0.0"
+  },
+  "description": "Adds tools for working with a web app inside of a dynapp app."
+}
