@@ -96,7 +96,7 @@ module.exports = api => {
     config.devServer
       .proxy({
         '/server': {
-          target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, dynappConfig.app),
+          target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, dynappConfig.web),
           ws: false,
           changeOrigin: true,
           pathRewrite: {
