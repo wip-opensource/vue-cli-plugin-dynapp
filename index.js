@@ -115,7 +115,7 @@ module.exports = api => {
   }, args => {
     if (!args.prefix) {
       error('Prefix is a required argument');
-      exit(1);
+      process.exit(1);
     }
     const prefix = args.prefix.endsWith('/') ? args.prefix : args.prefix + '/';
 
