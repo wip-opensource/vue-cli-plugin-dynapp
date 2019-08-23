@@ -96,7 +96,7 @@ module.exports = api => {
     config.devServer
       .proxy({
         '/server': {
-          target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, dynappConfig.app),
+          target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, dynappConfig.web),
           ws: false,
           changeOrigin: true,
           pathRewrite: {
@@ -115,7 +115,7 @@ module.exports = api => {
   }, args => {
     if (!args.prefix) {
       error('Prefix is a required argument');
-      exit(1);
+      process.exit(1);
     }
     const prefix = args.prefix.endsWith('/') ? args.prefix : args.prefix + '/';
 
