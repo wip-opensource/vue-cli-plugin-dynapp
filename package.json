@@ -1,6 +1,6 @@
 {
   "name": "vue-cli-plugin-dynapp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "index.js",
   "repository": "git@github.com:wip-opensource/vue-cli-plugin-dynapp.git",
   "author": "Daniel Björkander <danielb@wip.se>",

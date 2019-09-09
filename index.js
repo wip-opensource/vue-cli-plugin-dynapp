@@ -3,7 +3,7 @@ const path = require('path');
 const mime = require('mime-types');
 const axios = require('axios');
 const fs = require('fs-extra')
-const { info, error, done, logWithSpinner, stopSpinner, chalk } = require('@vue/cli-shared-utils');
+const { info, error, warn, done, logWithSpinner, stopSpinner, chalk } = require('@vue/cli-shared-utils');
 
 function listFiles(folder) {
   const result = [];
@@ -89,22 +89,71 @@ async function clearDataItems(dynappConfig, prefix) {
   return await Promise.all(operations);
 }
 
-module.exports = api => {
-  const dynappConfig = require(api.resolve('../dynappconfig.json'));
+function getDynappProxyConfig(dynappConfig, endpoint) {
+  var pattern = '^/' + endpoint;
+  var localPath = '/' + endpoint;
 
-  api.chainWebpack(config => {
-    config.devServer
-      .proxy({
-        '/server': {
-          target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, dynappConfig.web),
-          ws: false,
-          changeOrigin: true,
-          pathRewrite: {
-            '^/server': '/'
-          }
-        }
-      });
+  return {
+    localPath,
+    config: {
+      target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, endpoint),
+      ws: false,
+      changeOrigin: true,
+      pathRewrite: {
+        [pattern]: '/'
+      }
+    }
+  };
+}
+
+function assembleDynappProxyConfigs(dynappConfig, endpoints) {
+  var proxyConfigs = {};
+  endpoints.map(endpoint => {
+    var {localPath, config} = getDynappProxyConfig(dynappConfig, endpoint);
+    proxyConfigs[localPath] = config;
   });
+  return proxyConfigs;  
+}
+
+module.exports = api => {
+  var dynappConfig;
+  try {
+    dynappConfig = require(api.resolve('../dynappconfig.json'));
+  } catch (err) {
+    // We have no server to attach to, so no use to setup dynapp
+    info('No dynappconfig.json found, dynapp tooling is not active.');
+    return;
+  }
+
+  var localPackage = require(path.join(api.getCwd(), 'package.json'));
+  var proxyConfigs = {};
+  if (localPackage.dependencies) {
+    for (var dep in localPackage.dependencies) {
+      var depPackage = require(path.join(api.getCwd(), 'node_modules', dep, 'package.json'));
+
+      if (depPackage.dynappProxies) {
+        var depProxyConfigs = assembleDynappProxyConfigs(dynappConfig, depPackage.dynappProxies);
+
+        for (localPath in depProxyConfigs) {
+          if (proxyConfigs[localPath])
+            warn(`Proxy for path '${localPath}' is set by multiple dependencies. Only one will be applied`);
+          proxyConfigs[localPath] = depProxyConfigs[localPath];
+        }
+      }
+    }
+  }
+
+  if (localPackage.dynappProxies) {
+    var selfProxyConfigs = assembleDynappProxyConfigs(dynappConfig, localPackage.dynappProxies);
+    for (localPath in selfProxyConfigs) {
+      if (localPath in proxyConfigs)
+        warn(`Proxy for path ${localPath} is set by a dependency, but is overriden by this projects proxy configuration`);
+      proxyConfigs[localPath] = selfProxyConfigs[localPath];
+    }
+  }
+
+  if (Object.keys(proxyConfigs).length > 0)
+    api.chainWebpack(config => config.devServer.proxy(proxyConfigs));
 
   api.registerCommand('dynapp-publish', {
     description: 'Publish dist folder to the app on dynapp-server. Removes old data-items for webapp.',
