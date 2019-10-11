@@ -112,17 +112,21 @@ function assembleDynappProxyConfigs(dynappConfig, endpoints) {
     var {localPath, config} = getDynappProxyConfig(dynappConfig, endpoint);
     proxyConfigs[localPath] = config;
   });
-  return proxyConfigs;  
+  return proxyConfigs;
 }
 
 module.exports = api => {
   var dynappConfig;
   try {
-    dynappConfig = require(api.resolve('../dynappconfig.json'));
-  } catch (err) {
-    // We have no server to attach to, so no use to setup dynapp
-    info('No dynappconfig.json found, dynapp tooling is not active.');
-    return;
+    dynappConfig = require(api.resolve('dynappconfig.json'));
+  } catch () {
+    try {
+      dynappConfig = require(api.resolve('../dynappconfig.json'));
+    } catch () {
+      // We have no server to attach to, so no use to setup dynapp
+      info('No dynappconfig.json found, dynapp tooling is not active.');
+      return;
+    }
   }
 
   var localPackage = require(path.join(api.getCwd(), 'package.json'));
