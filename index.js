@@ -119,10 +119,10 @@ module.exports = api => {
   var dynappConfig;
   try {
     dynappConfig = require(api.resolve('dynappconfig.json'));
-  } catch () {
+  } catch (err) {
     try {
       dynappConfig = require(api.resolve('../dynappconfig.json'));
-    } catch () {
+    } catch (err) {
       // We have no server to attach to, so no use to setup dynapp
       info('No dynappconfig.json found, dynapp tooling is not active.');
       return;
