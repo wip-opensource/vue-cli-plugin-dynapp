@@ -93,7 +93,7 @@ function getDynappProxyConfig(dynappConfig, endpoint) {
   var pattern = '^/' + endpoint;
 
   return {
-    pattern,
+    localPath: pattern,
     config: {
       target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, endpoint),
       ws: false,
