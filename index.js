@@ -186,6 +186,8 @@ module.exports = api => {
     }
     const prefix = args.prefix.endsWith('/') ? args.prefix : args.prefix + '/';
 
+    info('Publishing to: ' + dataItemsBaseUrl(dynappConfig) + ' with prefix: ' + prefix);
+
     logWithSpinner(`Removing existing data-items in ${prefix}`);
     clearDataItems(dynappConfig, prefix).then((operations) => {
       stopSpinner(false);
