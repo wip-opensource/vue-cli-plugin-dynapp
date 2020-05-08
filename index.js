@@ -92,10 +92,25 @@ async function clearDataItems(dynappConfig, prefix) {
 function getDynappProxyConfig(dynappConfig, endpoint) {
   var pattern = '^/' + endpoint;
 
+  var baseurl = dynappConfig.baseUrl;
+
+  // Use rungroup and runapp if they exists, otherwise fall back to group and app
+  var group = dynappConfig.rungroup;
+  if (!group) {
+    group = dynappConfig.group;
+  }
+
+  var app = dynappConfig.runapp;
+  if (!app) {
+    app = dynappConfig.app;
+  }
+
+  var target = urljoin(dynappConfig.baseUrl, 'dynapp-server/public', group, app, endpoint);
+
   return {
     localPath: pattern,
     config: {
-      target: urljoin(dynappConfig.baseUrl, 'dynapp-server/public', dynappConfig.group, dynappConfig.app, endpoint),
+      target: target,
       ws: false,
       changeOrigin: true,
       pathRewrite: {
