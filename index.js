@@ -143,35 +143,41 @@ module.exports = api => {
     }
   }
 
-  var localPackage = require(path.join(api.getCwd(), 'package.json'));
-  var proxyConfigs = {};
-  if (localPackage.dependencies) {
-    for (var dep in localPackage.dependencies) {
-      var depPackage = require(path.join(api.getCwd(), 'node_modules', dep, 'package.json'));
+  // Set up proxies if command is serve
+  if (process.argv.indexOf('serve') != -1) {
+    var localPackage = require(path.join(api.getCwd(), 'package.json'));
+    var proxyConfigs = {};
+    if (localPackage.dependencies) {
+      for (var dep in localPackage.dependencies) {
+        var depPackage = require(path.join(api.getCwd(), 'node_modules', dep, 'package.json'));
 
-      if (depPackage.dynappProxies) {
-        var depProxyConfigs = assembleDynappProxyConfigs(dynappConfig, depPackage.dynappProxies);
+        if (depPackage.dynappProxies) {
+          var depProxyConfigs = assembleDynappProxyConfigs(dynappConfig, depPackage.dynappProxies);
 
-        for (localPath in depProxyConfigs) {
-          if (proxyConfigs[localPath])
-            warn(`Proxy for path '${localPath}' is set by multiple dependencies. Only one will be applied`);
-          proxyConfigs[localPath] = depProxyConfigs[localPath];
+          for (localPath in depProxyConfigs) {
+            if (proxyConfigs[localPath])
+              warn(`Proxy for path '${localPath}' is set by multiple dependencies. Only one will be applied`);
+            proxyConfigs[localPath] = depProxyConfigs[localPath];
+          }
         }
       }
     }
-  }
 
-  if (localPackage.dynappProxies) {
-    var selfProxyConfigs = assembleDynappProxyConfigs(dynappConfig, localPackage.dynappProxies);
-    for (localPath in selfProxyConfigs) {
-      if (localPath in proxyConfigs)
-        warn(`Proxy for path ${localPath} is set by a dependency, but is overriden by this projects proxy configuration`);
-      proxyConfigs[localPath] = selfProxyConfigs[localPath];
+    if (localPackage.dynappProxies) {
+      var selfProxyConfigs = assembleDynappProxyConfigs(dynappConfig, localPackage.dynappProxies);
+      for (localPath in selfProxyConfigs) {
+        if (localPath in proxyConfigs)
+          warn(`Proxy for path ${localPath} is set by a dependency, but is overriden by this projects proxy configuration`);
+        proxyConfigs[localPath] = selfProxyConfigs[localPath];
+      }
+    }
+
+    if (Object.keys(proxyConfigs).length > 0) {
+      var proxyExample = getDynappProxyConfig(dynappConfig, '');
+      info('Proxy(s) set up for: ' + proxyExample.config.target);
+      api.chainWebpack(config => config.devServer.proxy(proxyConfigs));
     }
   }
-
-  if (Object.keys(proxyConfigs).length > 0)
-    api.chainWebpack(config => config.devServer.proxy(proxyConfigs));
 
   api.registerCommand('dynapp-publish', {
     description: 'Publish dist folder to the app on dynapp-server. Removes old data-items for webapp.',
