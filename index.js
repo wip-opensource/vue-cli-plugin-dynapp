@@ -155,8 +155,6 @@ module.exports = api => {
           var depProxyConfigs = assembleDynappProxyConfigs(dynappConfig, depPackage.dynappProxies);
 
           for (localPath in depProxyConfigs) {
-            if (proxyConfigs[localPath])
-              warn(`Proxy for path '${localPath}' is set by multiple dependencies. Only one will be applied`);
             proxyConfigs[localPath] = depProxyConfigs[localPath];
           }
         }
@@ -166,8 +164,6 @@ module.exports = api => {
     if (localPackage.dynappProxies) {
       var selfProxyConfigs = assembleDynappProxyConfigs(dynappConfig, localPackage.dynappProxies);
       for (localPath in selfProxyConfigs) {
-        if (localPath in proxyConfigs)
-          warn(`Proxy for path ${localPath} is set by a dependency, but is overriden by this projects proxy configuration`);
         proxyConfigs[localPath] = selfProxyConfigs[localPath];
       }
     }
