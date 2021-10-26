@@ -171,6 +171,9 @@ module.exports = api => {
     if (Object.keys(proxyConfigs).length > 0) {
       var proxyExample = getDynappProxyConfig(dynappConfig, '');
       info('Proxy(s) set up for: ' + proxyExample.config.target);
+      for (localPath in proxyConfigs) {
+        info('Proxy: ' + localPath.slice(1));
+      }
       api.chainWebpack(config => config.devServer.proxy(proxyConfigs));
     }
   }
