@@ -194,8 +194,9 @@ module.exports = api => {
 
     // TODO: Read 'dist/' from webpack config
     const distFolder = 'dist/';
+    var distFiles;
     try {
-      const distFiles = listFiles(distFolder);
+      distFiles = listFiles(distFolder);
     } catch (e) {
       error(`Failed to load '${distFolder}'. Have you built? (${e})`);
       process.exit(1);
