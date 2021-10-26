@@ -2,7 +2,8 @@ const urljoin = require('url-join');
 const path = require('path');
 const mime = require('mime-types');
 const axios = require('axios');
-const fs = require('fs-extra')
+const fs = require('fs-extra');
+const prompts = require('prompts');
 const { info, error, warn, done, logWithSpinner, stopSpinner, chalk } = require('@vue/cli-shared-utils');
 
 function listFiles(folder) {
@@ -191,25 +192,48 @@ module.exports = api => {
     }
     const prefix = args.prefix.endsWith('/') ? args.prefix : args.prefix + '/';
 
-    info('Publishing to: ' + dataItemsBaseUrl(dynappConfig) + ' with prefix: ' + prefix);
-
-    logWithSpinner(`Removing existing data-items in ${prefix}`);
-    clearDataItems(dynappConfig, prefix).then((operations) => {
-      stopSpinner(false);
-      info(`Removed ${operations.length} data-items in ${prefix} ${chalk.green('✔')}`);
-
-      // TODO: Read 'dist/' from webpack config
-      const distFolder = 'dist/';
+    // TODO: Read 'dist/' from webpack config
+    const distFolder = 'dist/';
+    try {
       const distFiles = listFiles(distFolder);
-      logWithSpinner(`Publishing data-items in ${prefix}`);
-      uploadDataItems(dynappConfig, prefix, distFiles, distFolder).then(() => {
-        stopSpinner(false);
-        done(`Published ${distFiles.length} data-items in ${prefix} ${chalk.green('✔')}`);
-      }).catch(error => {
-        error(`Error publishing data-item: ${error}`);
-      });
-    }).catch(error => {
-      error(`Error removing data-items: ${error}`);
+    } catch (e) {
+      error(`Failed to load '${distFolder}'. Have you built? (${e})`);
+      process.exit(1);
+    }
+
+    // Confirm publish url and prefix
+    prompts({
+      type: 'confirm',
+      initial: true,
+      name: 'confirmed',
+      message: 'Publish to: ' + dataItemsBaseUrl(dynappConfig) + ' with prefix: ' + prefix + ' ?'
+    }).then((result) => {
+      if (result.confirmed) {
+        // Remove and publish
+        logWithSpinner(`Removing existing data-items in ${prefix}`);
+        clearDataItems(dynappConfig, prefix).then((operations) => {
+          stopSpinner(false);
+          info(`Removed ${operations.length} data-items in ${prefix} ${chalk.green('✔')}`);
+
+          logWithSpinner(`Publishing data-items in ${prefix}`);
+          uploadDataItems(dynappConfig, prefix, distFiles, distFolder).then(() => {
+            stopSpinner(false);
+            done(`Published ${distFiles.length} data-items in ${prefix} ${chalk.green('✔')}`);
+          }).catch(err => {
+            error(`Error publishing data-item: ${err}`);
+            process.exit(1);
+          });
+        }).catch(err => {
+          error(`Error removing data-items: ${err}`);
+          process.exit(1);
+        });
+      } else {
+        error('Publish cancelled');
+        process.exit(1);
+      }
+    }, () => {
+      error('Failed to prompt confirm');
+      process.exit(1);
     });
   });
 };

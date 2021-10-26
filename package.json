@@ -11,6 +11,7 @@
     "fs-extra": "^10.0.0",
     "mime-types": "^2.1.21",
     "path": "^0.12.7",
+    "prompts": "^2.4.2",
     "url-join": "^4.0.0"
   },
   "description": "Adds tools for working with a web app inside of a dynapp app."
