@@ -91,7 +91,7 @@ async function clearDataItems(dynappConfig, prefix) {
 }
 
 function getDynappProxyConfig(dynappConfig, endpoint) {
-  var pattern = '^/' + endpoint;
+  var pattern = '^/' + endpoint + '/';
 
   var baseurl = dynappConfig.baseUrl;
 
