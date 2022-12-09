@@ -148,8 +148,12 @@ module.exports = api => {
   if (process.argv.indexOf('serve') != -1) {
     var localPackage = require(path.join(api.getCwd(), 'package.json'));
     var proxyConfigs = {};
-    if (localPackage.dependencies) {
-      for (var dep in localPackage.dependencies) {
+    var dependencies = {
+      ...localPackage.dependencies || {},
+      ...localPackage.devDependencies || {}
+    };
+    if (dependencies) {
+      for (var dep in dependencies) {
         var depPackage = require(path.join(api.getCwd(), 'node_modules', dep, 'package.json'));
 
         if (depPackage.dynappProxies) {
