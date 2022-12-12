@@ -131,6 +131,15 @@ function assembleDynappProxyConfigs(dynappConfig, endpoints) {
 }
 
 module.exports = api => {
+  var dynappInfoPath = path.join(
+    api.getCwd(), 'node_modules', 'vue-cli-plugin-dynapp', 'dynapp-info.json'
+  );
+  // Clear DynApp info file
+  fs.writeFileSync(
+    dynappInfoPath,
+    '{}'
+  );
+
   var dynappConfig;
   try {
     dynappConfig = require(api.resolve('dynappconfig.json'));
@@ -181,6 +190,25 @@ module.exports = api => {
       }
       api.chainWebpack(config => config.devServer.proxy(proxyConfigs));
     }
+
+    // Update DynApp info file
+    var dynappInfo = {
+      host: '',
+      app: '',
+      group: ''
+    };
+    if (dynappConfig) {
+      let baseUrl = dynappConfig.baseUrl;
+      if (baseUrl) {
+        dynappInfo.host = (baseUrl.split('://')[1] || '').split('/')[0];
+      }
+      dynappInfo.group = dynappConfig.rungroup || dynappConfig.group || '';
+      dynappInfo.app = dynappConfig.runapp || dynappConfig.app || '';
+    }
+    fs.writeFileSync(
+      dynappInfoPath,
+      JSON.stringify(dynappInfo)
+    );
   }
 
   api.registerCommand('dynapp-publish', {
