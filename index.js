@@ -134,11 +134,6 @@ module.exports = api => {
   var dynappInfoPath = path.join(
     api.getCwd(), 'node_modules', 'vue-cli-plugin-dynapp', 'dynapp-info.json'
   );
-  // Clear DynApp info file
-  fs.writeFileSync(
-    dynappInfoPath,
-    '{}'
-  );
 
   var dynappConfig;
   try {
@@ -149,6 +144,11 @@ module.exports = api => {
     } catch (err) {
       // We have no server to attach to, so no use to setup dynapp
       info('No dynappconfig.json found, dynapp tooling is not active.');
+      // Clear DynApp info file
+      fs.writeFileSync(
+        dynappInfoPath,
+        '{}'
+      );
       return;
     }
   }
