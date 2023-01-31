@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 const prompts = require('prompts');
 const { info, error, warn, done, logWithSpinner, stopSpinner, chalk } = require('@vue/cli-shared-utils');
 
-function listFiles(folder) {
+function listFiles(folder) {
   const result = [];
 
   const files = fs.readdirSync(folder);
@@ -135,22 +135,31 @@ module.exports = api => {
     api.getCwd(), 'node_modules', 'vue-cli-plugin-dynapp', 'dynapp-info.json'
   );
 
+  // Figure out dynappconfig
   var dynappConfig;
-  try {
-    dynappConfig = require(api.resolve('dynappconfig.json'));
-  } catch (err) {
+  // Number of folders up, and when they happen
+  // 0 - When working directly in root, for example a dync component
+  // 1 - When working in web folder, for example a pre dync-enabled editor
+  // 2 - Not a known usecase at the moment...
+  // 3 - When working in data-items/dync/web folder, for example an app post dync-enabled editor
+  // 4 - When working in dynapp/data-items/dync/web folder, for example a component post dync-enabled editor
+  for (let count = 0; count < 5; count++) {
     try {
-      dynappConfig = require(api.resolve('../dynappconfig.json'));
+      let foldersUp = '../'.repeat(count);
+      dynappConfig = require(api.resolve(foldersUp + 'dynappconfig.json'));
     } catch (err) {
-      // We have no server to attach to, so no use to setup dynapp
-      info('No dynappconfig.json found, dynapp tooling is not active.');
-      // Clear DynApp info file
-      fs.writeFileSync(
-        dynappInfoPath,
-        '{}'
-      );
-      return;
+      // dynappconfig is not at this level, try next
     }
+  }
+  if (!dynappConfig) {
+    // We have no server to attach to, so no use to setup dynapp
+    info('No dynappconfig.json found, dynapp tooling is not active.');
+    // Clear DynApp info file
+    fs.writeFileSync(
+      dynappInfoPath,
+      '{}'
+    );
+    return;
   }
 
   // Set up proxies if command is serve
