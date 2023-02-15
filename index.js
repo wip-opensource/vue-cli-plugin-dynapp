@@ -150,6 +150,9 @@ module.exports = api => {
     } catch (err) {
       // dynappconfig is not at this level, try next
     }
+    if (dynappConfig) {
+      break;
+    }
   }
   if (!dynappConfig) {
     // We have no server to attach to, so no use to setup dynapp
