@@ -59,6 +59,8 @@ function uploadDataItem(dynappConfig, file, targetFile) {
     },
     data: fs.createReadStream(file),
     responseType: 'text',
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
     auth: {
       username: dynappConfig.username,
       password: dynappConfig.password
