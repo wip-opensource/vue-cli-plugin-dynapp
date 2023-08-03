@@ -6,7 +6,7 @@
   "author": "Daniel Björkander <danielb@wip.se>",
   "license": "MIT",
   "dependencies": {
-    "@vue/cli-shared-utils": "^4.5.4",
+    "@vue/cli-shared-utils": "^5.0.8",
     "axios": "^0.24.0",
     "fs-extra": "^10.0.0",
     "mime-types": "^2.1.21",
