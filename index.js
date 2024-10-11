@@ -123,6 +123,37 @@ function getDynappProxyConfig(dynappConfig, endpoint) {
   };
 }
 
+function getDynappServerProxyConfig(dynappConfig) {
+  var pattern = '^/dynapp-server/';
+
+  var baseurl = dynappConfig.baseUrl;
+
+  // Use rungroup and runapp if they exists, otherwise fall back to group and app
+  var group = dynappConfig.rungroup;
+  if (!group) {
+    group = dynappConfig.group;
+  }
+
+  var app = dynappConfig.runapp;
+  if (!app) {
+    app = dynappConfig.app;
+  }
+
+  var target = urljoin(dynappConfig.baseUrl, 'dynapp-server/public', group, app);
+
+  return {
+    localPath: pattern,
+    config: {
+      target: target,
+      ws: false,
+      changeOrigin: true,
+      pathRewrite: {
+        [pattern]: '/'
+      }
+    }
+  };
+}
+
 function assembleDynappProxyConfigs(dynappConfig, endpoints) {
   var proxyConfigs = {};
   endpoints.map(endpoint => {
@@ -195,6 +226,10 @@ module.exports = api => {
         proxyConfigs[localPath] = selfProxyConfigs[localPath];
       }
     }
+
+    // TODO: This proxy should really be all that is needed, ^/dynapp-server/...
+    var {localPath, config} = getDynappServerProxyConfig(dynappConfig);
+    proxyConfigs[localPath] = config;
 
     if (Object.keys(proxyConfigs).length > 0) {
       var proxyExample = getDynappProxyConfig(dynappConfig, '');
