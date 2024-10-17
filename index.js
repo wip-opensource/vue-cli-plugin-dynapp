@@ -244,7 +244,8 @@ module.exports = api => {
     var dynappInfo = {
       host: '',
       app: '',
-      group: ''
+      group: '',
+      dynapp_server_proxy: true // Used to mark that we support /dynapp-server/ proxy
     };
     if (dynappConfig) {
       let baseUrl = dynappConfig.baseUrl;
