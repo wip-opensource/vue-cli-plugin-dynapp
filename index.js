@@ -245,7 +245,7 @@ module.exports = api => {
       host: '',
       app: '',
       group: '',
-      dynapp_server_proxy: true // Used to mark that we support /dynapp-server/ proxy
+      devTool: 'vue-cli'
     };
     if (dynappConfig) {
       let baseUrl = dynappConfig.baseUrl;
