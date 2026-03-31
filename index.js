@@ -1,7 +1,6 @@
 const urljoin = require('url-join');
 const path = require('path');
 const mime = require('mime-types');
-const axios = require('axios');
 const fs = require('fs-extra');
 const prompts = require('prompts');
 const { info, error, warn, done, logWithSpinner, stopSpinner, chalk } = require('@vue/cli-shared-utils');
@@ -50,42 +49,44 @@ function uploadDataItems(dynappConfig, prefix, files, distFolder) {
 }
 
 function uploadDataItem(dynappConfig, file, targetFile) {
-  return axios({
+  return fetch(urljoin(dataItemsBaseUrl(dynappConfig), 'data-items', targetFile), {
     method: 'PUT',
-    url: urljoin(dataItemsBaseUrl(dynappConfig), 'data-items', targetFile),
     headers: {
       'Content-Type': mime.lookup(targetFile) || '',
-      'X-Category': '2'
+      'X-Category': '2',
+      'Authorization': 'Basic ' + Buffer.from(dynappConfig.username + ':' + dynappConfig.password).toString('base64')
     },
-    data: fs.createReadStream(file),
-    responseType: 'text',
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
-    auth: {
-      username: dynappConfig.username,
-      password: dynappConfig.password
+    body: fs.createReadStream(file),
+    duplex: 'half'
+  }).then(res => {
+    if (!res.ok) {
+      throw new Error(res.statusText);
     }
+    return res.text();
   });
 }
 
 async function clearDataItems(dynappConfig, prefix) {
-  const resp = await axios({
-    method: 'GET',
-    url: urljoin(dataItemsBaseUrl(dynappConfig), 'data-items/'),
-    auth: {
-      username: dynappConfig.username,
-      password: dynappConfig.password
-    }
+  const authHeader = 'Basic ' + Buffer.from(dynappConfig.username + ':' + dynappConfig.password).toString('base64');
+
+  const res = await fetch(urljoin(dataItemsBaseUrl(dynappConfig), 'data-items/'), {
+    headers: { 'Authorization': authHeader }
   });
-  const existingWebDataItems = Object.keys(resp.data).filter(dataItem => dataItem.startsWith(prefix));
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  }
+  const data = await res.json();
+
+  const existingWebDataItems = Object.keys(data).filter(dataItem => dataItem.startsWith(prefix));
   const operations = existingWebDataItems.map(dataItem => {
-    return axios({
+    return fetch(urljoin(dataItemsBaseUrl(dynappConfig), 'data-items', dataItem), {
       method: 'DELETE',
-      url: urljoin(dataItemsBaseUrl(dynappConfig), 'data-items', dataItem),
-      auth: {
-        username: dynappConfig.username,
-        password: dynappConfig.password
+      headers: { 'Authorization': authHeader }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(res.statusText);
       }
+      return res.json();
     });
   });
 
